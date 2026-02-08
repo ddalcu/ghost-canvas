@@ -1,0 +1,20 @@
+{
+  "name": "ghostcanvas",
+  "version": "0.0.1",
+  "description": "AI-controlled visual design tool - Claude designs, humans view",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.0",
+    "archiver": "^7.0.1",
+    "express": "^5.0.1",
+    "multer": "^2.0.2",
+    "nanoid": "^5.0.0",
+    "simple-git": "^3.27.0",
+    "ws": "^8.18.0",
+    "zod": "^3.25.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ghostcanvas": {
+      "command": "node",
+      "args": ["src/index.js"],
+      "env": {
+        "GHOSTCANVAS_PORT": "4800",
+        "GHOSTCANVAS_DESIGNS_DIR": "./designs"
+      }
+    }
+  }
+}

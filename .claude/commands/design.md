@@ -1,0 +1,264 @@
+# GhostCanvas Design Skill
+
+You are designing a visual interface using GhostCanvas, an AI-controlled design tool. You manipulate designs through MCP tools while the user views the result in a browser at localhost:4800. All editing happens via MCP tools -- the viewer is read-only.
+
+## Design Workflow
+
+**First thing**: Open the viewer in the user's browser by running `open http://localhost:4800` (macOS) or `xdg-open http://localhost:4800` (Linux) so the user can see the design live as you work.
+
+Follow this order when building a new design:
+
+### 1. Project Setup
+```
+create_project -> set_viewport -> rename_page -> set_design_tokens
+```
+- Use `create_project` for a new design, or `list_projects` + `switch_project` for existing ones
+- Set viewport FIRST: `mobile` (375x812) for phone apps, `desktop` (1440x900) for websites, `tablet` (768x1024) for tablet apps
+- Rename the default "Page 1" to something meaningful
+- Set design tokens (colors, fonts, spacing) to establish your design system
+- Use `set_design_type` to specify `responsive-web`, `mobile-app`, `tablet-app`, or `desktop-app`
+
+### 2. Styles
+```
+batch_set_styles (all base styles) -> batch_set_styles (responsive overrides)
+```
+- Define ALL styles BEFORE creating elements -- this is much more efficient
+- Use `batch_set_styles` to set multiple rules in one call (not individual `set_styles`)
+- Add responsive `@media` overrides in a second batch call
+- NEVER use inline CSS (`style="..."`). All styling goes through `set_styles`/`batch_set_styles`
+
+### 3. Elements
+```
+batch_create_elements (full page tree in one call)
+```
+- Build the entire page structure in a single `batch_create_elements` call when possible
+- Use nested `children` arrays to build the full tree
+- Use `create_element` only for small additions after the initial build
+- Use `update_element` to modify existing elements (tag, classes, attributes, textContent)
+
+### 4. Review & Iterate
+```
+screenshot_page -> adjust styles/elements -> screenshot_page
+```
+- Take screenshots to verify the design
+- Use `batch_set_styles` for style adjustments
+- Use `get_selected_element` when the user clicks something in the viewer
+
+### 5. Auto-Save Revision (MANDATORY)
+```
+save_revision (always the LAST tool call)
+```
+- **ALWAYS** call `save_revision` as the very last MCP tool call after completing all design work for a prompt
+- Use a descriptive message summarizing what was done (e.g., "Add hero section with responsive layout")
+- This saves a git commit in the project's history so the user can browse/restore versions
+- Do NOT skip this step -- every completed prompt must end with a saved revision
+
+## MCP Tools Reference (37 tools)
+
+### Elements (8 tools)
+| Tool | Use For |
+|------|---------|
+| `batch_create_elements` | Build element trees (preferred for bulk creation) |
+| `create_element` | Add single elements |
+| `update_element` | Change tag, classes, attributes, or textContent |
+| `delete_element` | Remove element and all children |
+| `move_element` | Reparent or reorder elements |
+| `get_element` | Inspect a single element |
+| `list_elements` | Get full element tree for a page |
+| `get_selected_element` | Get what the user clicked (includes applied styles, parent, children, viewport) |
+
+### Styles (6 tools)
+| Tool | Use For |
+|------|---------|
+| `batch_set_styles` | Set multiple CSS rules at once (preferred) |
+| `set_styles` | Set a single CSS rule |
+| `delete_styles` | Remove a CSS rule |
+| `list_styles` | Get all defined styles |
+| `set_design_tokens` | Set colors/fonts/spacing tokens (with optional `propagate` to update all refs) |
+| `get_design_tokens` | Read current tokens |
+
+### Pages (6 tools)
+| Tool | Use For |
+|------|---------|
+| `create_page` | Add new page with root element |
+| `clone_page` | Duplicate a page with all elements (new IDs generated) |
+| `delete_page` | Remove a page and all its elements |
+| `rename_page` | Change page name |
+| `list_pages` | List all pages |
+| `set_active_page` | Switch visible page in the viewer |
+
+### Projects (6 tools)
+| Tool | Use For |
+|------|---------|
+| `create_project` | New project (auto-switches, optional `designType` parameter) |
+| `list_projects` | List all projects with active indicator |
+| `switch_project` | Change active project by ID |
+| `delete_project` | Remove a project and its data |
+| `rename_project` | Rename a project |
+| `set_design_type` | Set design type: `responsive-web`, `mobile-app`, `tablet-app`, `desktop-app` |
+
+### Assets (2 tools)
+| Tool | Use For |
+|------|---------|
+| `list_assets` | Get all uploaded images with URLs |
+| `delete_asset` | Remove an uploaded image by filename |
+
+### Viewport (1 tool)
+| Tool | Use For |
+|------|---------|
+| `set_viewport` | Set device size: `mobile` (375x812), `tablet` (768x1024), `desktop` (1440x900), or custom `width`/`height` |
+
+### Screenshot (1 tool)
+| Tool | Use For |
+|------|---------|
+| `screenshot_page` | Capture PNG of current design (optional `pageId`, `device` params) |
+
+### Export (2 tools)
+| Tool | Use For |
+|------|---------|
+| `export_html` | Export standalone HTML with embedded CSS |
+| `export_design_spec` | Export structured markdown spec + screenshot for AI coding tools to rebuild as a real app |
+
+### History (4 tools)
+| Tool | Use For |
+|------|---------|
+| `save_revision` | Save a named git commit of current state (ALWAYS call at end of each prompt) |
+| `get_history` | Git commit log (default 50 entries) |
+| `checkout_version` | Restore previous version by commit hash |
+| `get_diff` | Diff between current state and a commit |
+
+### State (2 tools)
+| Tool | Use For |
+|------|---------|
+| `get_design_state` | Full state JSON (project, pages, elements, styles, tokens) |
+| `get_page_state` | Elements + styles for one page (can be large for complex pages) |
+
+## Critical Gotchas
+
+### 1. Unicode/Emoji in `create_element`
+`create_element` stores `\uXXXX` escape sequences literally as text. Use actual unicode characters (paste real emoji), not escape codes. `batch_create_elements` handles escapes correctly, so prefer it.
+
+### 2. Media Queries Syntax
+Media query selectors MUST follow this format -- the query and inner selector separated by a space:
+```
+"@media (max-width: 768px) .hero-title"
+```
+The renderer groups these into proper `@media` blocks automatically. Do NOT try to write nested CSS manually.
+
+### 3. No Inline CSS
+NEVER use `style="..."` attributes on elements. All styling must go through CSS classes via `set_styles`/`batch_set_styles`. This is a hard rule.
+
+### 4. Icon Fonts
+Add icon font stylesheets as `<link>` elements at the top of the root element (insertIndex 0):
+```
+create_element: tag="link", parentId="root-1", attributes={"rel":"stylesheet","href":"https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css"}, insertIndex=0
+```
+Then use `<i>` elements with icon classes: `<i class="ri-home-5-line icon-class">`.
+
+**Gotcha**: Icon fonts do NOT render in `screenshot_page` (html2canvas limitation). They work fine in the live browser viewer.
+
+### 5. Screenshots
+- `screenshot_page` uses html2canvas in the viewer browser -- external web fonts and some CSS features may not render
+- The `device` parameter temporarily resizes the viewport for the capture
+- The browser must be open at localhost:4800 for screenshots to work
+- For accurate rendering, always check the live browser
+
+### 6. Viewport Behavior
+- Setting viewport via `set_viewport` changes the server-side state
+- The user can independently switch devices in the viewer UI (Phone/Tablet/Desktop buttons)
+- Style/element changes do NOT reset the user's local viewport selection
+- Only `set_viewport`, initial page load, and `design:full` events update the viewport
+
+### 7. Element Structure
+- Each page has a root element (ID: `root-{id}`)
+- Update root's classes to set page-level styles (e.g., `update_element` root to add `class="app"`)
+- Elements reference their page via `pageId` (set automatically)
+- `children` array determines render order
+- `<link>`, `<meta>`, `<base>` tags as root children are moved to `<head>` in HTML export
+
+### 8. Batch Operations Are MUCH Faster
+- `batch_create_elements`: One call to build an entire page tree (vs. dozens of `create_element` calls)
+- `batch_set_styles`: One call to set all CSS rules (vs. dozens of `set_styles` calls)
+- Batch operations emit a single WebSocket delta, reducing viewer flicker
+- Always prefer batch operations over individual ones
+
+### 9. Page State Can Be Large
+`get_page_state` returns the full element tree + styles. For complex pages this can be very large (50KB+). Use `list_elements` for just the tree structure, or `list_styles` for just CSS.
+
+### 10. Design Spec Export
+`export_design_spec` generates a structured markdown document with element hierarchy, styles, tokens, and an optional screenshot. This is optimized for AI coding tools to rebuild the design as a real application.
+
+### 11. Asset Drag-and-Drop
+Assets uploaded via the viewer can be dragged onto canvas elements. The viewer sends an `asset:apply` WebSocket message with the target element ID and asset URL. Upload via the viewer UI or POST to `/api/assets`.
+
+## Design Templates
+
+### Website (Desktop-First)
+```
+Viewport: desktop (1440x900)
+Structure: nav -> hero -> sections -> cta -> footer
+Responsive: Add @media (max-width: 768px) overrides for all sections
+
+Key patterns:
+- .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+- Sections: 80-120px vertical padding
+- Grid layouts: Use CSS grid, collapse to 1 column on mobile
+- Nav: Hide nav-links on mobile (display: none)
+- Typography: Scale down headings 30-40% for mobile
+- Padding: Reduce horizontal padding from 48px to 20px on mobile
+```
+
+### iPhone App (Mobile-First)
+```
+Viewport: mobile (375x812)
+Structure: status-bar -> header -> content -> action-buttons -> bottom-nav
+
+Key patterns:
+- .app { height: 100vh; max-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+- Scrollable content areas: Use min-height: 0 on flex children + overflow-y: auto on the scrollable area
+  (min-height: 0 is required for flex children to shrink below their content size)
+- NEVER use min-height: 100vh for mobile apps -- it allows the app to exceed the viewport and cause scrollbars
+- Dark theme: bg #0D0D0D, cards #1A1A1A, elevated #222222
+- Status bar: 9:41 time, signal/battery icons
+- Bottom nav: padding-bottom 24-28px for home indicator area
+- Cards: border-radius 14-16px, padding 14-16px
+- Action area: margin-top: auto to push to bottom
+- Font: -apple-system, 'SF Pro Text', system-ui, sans-serif
+- Hide scrollbars on scroll areas: scrollbar-width: none; -ms-overflow-style: none
+  (plus .scroll-area::-webkit-scrollbar { display: none })
+```
+
+### Dashboard
+```
+Viewport: desktop (1440x900)
+Structure: sidebar -> main (header -> stats-row -> charts-grid -> table)
+
+Key patterns:
+- Sidebar: fixed width 240-280px, full height
+- Main: flex: 1, overflow-y: auto
+- Stats cards: grid with 3-4 columns
+- Use tabular-nums for number displays
+```
+
+## Style Best Practices
+
+1. **Design tokens first** -- Set colors, fonts, spacing before writing any styles
+2. **Semantic class names** -- `.hero-title` not `.big-red-text`
+3. **Mobile responsive** -- Always add `@media (max-width: 768px)` overrides for websites
+4. **Consistent spacing** -- Use your spacing tokens (4/8/16/24/32/48/64px scale)
+5. **Typography scale** -- Establish clear heading sizes (48->38->28->22->18->16px)
+6. **Border radius** -- Keep consistent (e.g., 12-16px for cards, 100px for pills)
+7. **Color opacity** -- Use rgba for text hierarchy (white-90, white-60, white-40)
+8. **Transitions** -- Add subtle transitions for interactive elements (0.2s ease)
+
+## Efficiency Tips
+
+1. **Plan your full layout** before making any tool calls
+2. **Set ALL styles in one `batch_set_styles` call** -- gather every selector and property
+3. **Build the full element tree in one `batch_create_elements` call** -- use nested children
+4. **Take a screenshot after major milestones**, not after every change
+5. **Use `list_styles`** to see current state before making changes
+6. **Use `get_selected_element`** when the user references something they clicked
+7. **Use `update_element`** to change existing elements instead of delete + recreate
+8. **Use `clone_page`** to duplicate pages for variations instead of rebuilding from scratch
+9. **Use `export_design_spec`** to generate specs that AI coding tools can use to build the real app

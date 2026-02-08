@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostCanvas</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Top toolbar -->
+    <header class="toolbar">
+      <div class="toolbar-left">
+        <div class="device-buttons" id="device-buttons"></div>
+      </div>
+      <div class="toolbar-center">
+        <span class="logo">GhostCanvas</span>
+        <span class="activity-indicator" id="activity-indicator">
+          <span class="activity-dots">
+            <span class="activity-dot"></span>
+            <span class="activity-dot"></span>
+            <span class="activity-dot"></span>
+          </span>
+          <span class="activity-label">Designing</span>
+        </span>
+      </div>
+      <div class="toolbar-right">
+        <span class="viewport-info" id="viewport-info"></span>
+        <button class="export-btn" id="export-zip-btn">Export ZIP</button>
+      </div>
+    </header>
+
+    <!-- Main content area -->
+    <div class="main">
+      <!-- Left sidebar -->
+      <aside class="sidebar sidebar-left">
+        <div class="panel panel-projects">
+          <div class="panel-header">
+            <select class="project-select" id="projects-panel"></select>
+          </div>
+        </div>
+        <div class="panel panel-pages">
+          <div class="panel-header">Pages</div>
+          <div class="panel-body" id="pages-panel"></div>
+        </div>
+        <div class="panel panel-layers">
+          <div class="panel-header">Layers</div>
+          <div class="panel-body" id="layers-panel"></div>
+        </div>
+        <div class="panel panel-assets">
+          <div class="panel-header">Assets</div>
+          <div class="panel-body" id="assets-panel"></div>
+        </div>
+      </aside>
+
+      <!-- Canvas area -->
+      <main class="canvas-area">
+        <div class="canvas-wrapper" id="canvas-wrapper">
+          <iframe id="canvas-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+      </main>
+
+      <!-- Right sidebar -->
+      <aside class="sidebar sidebar-right">
+        <div class="panel panel-inspector">
+          <div class="panel-header">Inspector</div>
+          <div class="panel-body" id="inspector-panel">
+            <div class="inspector-empty">Select an element to inspect</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="bottom-bar">
+      <div class="panel panel-activity">
+        <div class="panel-header">Activity</div>
+        <div class="panel-body panel-body-scroll" id="activity-panel"></div>
+      </div>
+      <div class="panel panel-tokens">
+        <div class="panel-header">All Tokens</div>
+        <div class="panel-body panel-body-scroll" id="tokens-panel">
+          <div class="tokens-empty">No design tokens defined</div>
+        </div>
+      </div>
+      <div class="panel panel-history">
+        <div class="panel-header">
+          History
+          <button class="save-revision-btn" id="save-revision-btn">Save Revision</button>
+        </div>
+        <div class="panel-body panel-body-scroll" id="history-panel"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

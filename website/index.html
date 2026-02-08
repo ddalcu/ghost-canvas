@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostCanvas - AI-Controlled Visual Design</title>
+  <meta name="description" content="Design-first AI creation. Think Figma, but the designer is Claude. Open source. Runs locally.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09090b;
+      --surface: #131318;
+      --border: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.9);
+      --text-secondary: rgba(255,255,255,0.55);
+      --text-tertiary: rgba(255,255,255,0.3);
+      --accent: #8B5CF6;
+      --accent-soft: rgba(139,92,246,0.12);
+      --font: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(9,9,11,0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-ghost {
+      font-size: 18px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 450;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 0;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-image {
+      width: 100%;
+      display: block;
+    }
+
+    .hero-bottom {
+      padding-top: 32px;
+      padding-bottom: 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(139,92,246,0.15);
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, #8B5CF6, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 580px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 550;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn:hover {
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 2px 16px rgba(139,92,246,0.3);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 24px rgba(139,92,246,0.4);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Screenshots ── */
+    .screenshots {
+      padding: 40px 0 80px;
+    }
+
+    .screenshot-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .screenshot-card {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .screenshot-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-caption {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+
+    .screenshot-caption strong {
+      color: var(--text);
+      font-weight: 550;
+    }
+
+    /* ── How It Works ── */
+    .how-section {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin-bottom: 48px;
+      line-height: 1.65;
+    }
+
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      overflow-x: auto;
+    }
+
+    .diagram pre {
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      white-space: pre;
+      margin: 0;
+    }
+
+    .diagram .highlight { color: var(--accent); }
+    .diagram .dim { color: var(--text-tertiary); }
+
+    /* ── Features ── */
+    .features-section {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .feature-card {
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .feature-icon {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    .feature-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      letter-spacing: -0.2px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ── Quick Start ── */
+    .quickstart-section {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-tertiary);
+      font-family: var(--mono);
+    }
+
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+    }
+
+    .code-block pre {
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      overflow-x: auto;
+      margin: 0;
+    }
+
+    .code-block .cmd { color: var(--text); }
+    .code-block .comment { color: var(--text-tertiary); }
+    .code-block .accent { color: var(--accent); }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer p {
+      font-size: 14px;
+      color: var(--text-tertiary);
+    }
+
+    .footer a { color: var(--text-secondary); }
+    .footer a:hover { color: var(--accent); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hero { padding: 120px 0 60px; }
+      .hero h1 { font-size: 34px; }
+      .hero-sub { font-size: 16px; }
+      .screenshot-grid { gap: 12px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .section-title { font-size: 26px; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 28px; }
+      .hero-actions { flex-direction: column; align-items: center; }
+      .diagram { padding: 20px; }
+      .diagram pre { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <span class="nav-ghost"><i class="fa-solid fa-ghost"></i></span> GhostCanvas
+      </div>
+      <ul class="nav-links">
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#start">Quick Start</a></li>
+        <li><a href="https://github.com/ddalcu/ghost-canvas">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <img src="hero.png" alt="GhostCanvas - AI Designs, Humans View" class="hero-image">
+    <div class="container hero-bottom">
+      <div class="hero-actions">
+        <a href="https://github.com/ddalcu/ghost-canvas" class="btn btn-primary">Get Started</a>
+        <a href="#how" class="btn btn-secondary">See How It Works</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section class="screenshots">
+    <div class="container">
+      <div class="screenshot-grid">
+        <div class="screenshot-card">
+          <img src="ss2.png" alt="GhostCanvas designing a mobile iOS app" loading="lazy">
+          <div class="screenshot-caption">
+            <strong>Mobile app design</strong> &mdash; An iOS chat app with dark theme, responsive viewport switching, and full layer inspection. All built by Claude in real time.
+          </div>
+        </div>
+        <div class="screenshot-card">
+          <img src="ss1.png" alt="GhostCanvas designing a retro CERN website" loading="lazy">
+          <div class="screenshot-caption">
+            <strong>Desktop website</strong> &mdash; A 1992-era CERN site. Element tree, activity feed, and design tokens all update live.
+          </div>
+        </div>
+        <div class="screenshot-card">
+          <img src="ss3.png" alt="Claude Code running the /design skill" loading="lazy">
+          <div class="screenshot-caption">
+            <strong>Claude Code + /design</strong> &mdash; One command and Claude starts designing. MCP tool calls stream in as the design builds itself.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-section" id="how">
+    <div class="container">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-title">Design first, code second</h2>
+      <p class="section-desc">
+        Instead of prompting AI to generate code and hoping it looks right, start with the design.
+        Claude creates, iterates, and perfects visuals in a live canvas. Once it's right, export a spec
+        and let any AI coding tool rebuild it as a real app.
+      </p>
+      <div class="diagram">
+<pre><span class="highlight">AI Agent</span>              <span class="highlight">GhostCanvas</span>              <span class="highlight">Browser Viewer</span>
+<span class="dim">(Claude Code,</span>          <span class="dim">(Node.js)</span>                <span class="dim">(localhost:4800)</span>
+<span class="dim"> Cursor, VS Code)</span>
+
+    <span class="dim">│</span>                       <span class="dim">│</span>                        <span class="dim">│</span>
+    <span class="dim">│</span>  <span class="accent">MCP tool calls</span>       <span class="dim">│</span>                        <span class="dim">│</span>
+    <span class="dim">│</span> ────────────────────> <span class="dim">│</span>                        <span class="dim">│</span>
+    <span class="dim">│</span>                       <span class="dim">│</span>  <span class="accent">WebSocket deltas</span>      <span class="dim">│</span>
+    <span class="dim">│</span>                       <span class="dim">│</span> ─────────────────────> <span class="dim">│</span>
+    <span class="dim">│</span>                       <span class="dim">│</span>                        <span class="dim">│</span>  <span class="accent">Real-time render</span>
+    <span class="dim">│</span>  <span class="accent">tool responses</span>       <span class="dim">│</span>  <span class="accent">click-to-select</span>       <span class="dim">│</span>
+    <span class="dim">│</span> <───────────────────  <span class="dim">│</span> <────────────────────  <span class="dim">│</span>
+    <span class="dim">│</span>                       <span class="dim">│</span>                        <span class="dim">│</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything an AI designer needs</h2>
+      <p class="section-desc">38 MCP tools. Zero arbitrary code execution. Full design control.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <h3>38 MCP Tools</h3>
+          <p>Elements, styles, pages, viewports, projects, assets, history, and export. Full design control through a controlled API.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+          <h3>Real-Time Viewer</h3>
+          <p>Every change appears instantly via WebSocket deltas. Watch the design build itself in your browser.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+          <h3>Responsive Design</h3>
+          <p>Switch between mobile, tablet, and desktop viewports. Design for any screen size.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-folder-tree"></i></div>
+          <h3>Multi-Project</h3>
+          <p>Create and switch between independent design projects. Each with its own git history.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>Safe by Design</h3>
+          <p>No arbitrary code execution. The AI can only manipulate designs through controlled MCP tools.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-file-export"></i></div>
+          <h3>Export Anything</h3>
+          <p>Standalone HTML, structured design specs for AI coding tools, or PNG screenshots from any viewport.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start -->
+  <section class="quickstart-section" id="start">
+    <div class="container">
+      <div class="section-label">Quick Start</div>
+      <h2 class="section-title">Up and running in 60 seconds</h2>
+      <p class="section-desc">Clone, install, and start designing. Works with Claude Code, Cursor, and VS Code.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot"></span>
+          <span class="code-dot"></span>
+          <span class="code-dot"></span>
+          Terminal
+        </div>
+<pre><span class="comment"># Clone and install</span>
+<span class="cmd">git clone https://github.com/ddalcu/ghost-canvas.git</span>
+<span class="cmd">cd ghost-canvas</span>
+<span class="cmd">npm install</span>
+
+<span class="comment"># Start with Claude Code (recommended)</span>
+<span class="cmd">claude</span>
+
+<span class="comment"># Load the design skill</span>
+<span class="accent">/design</span>
+
+<span class="comment"># Tell Claude what to design</span>
+<span class="cmd">"Create a landing page for a coffee shop"</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>
+        GhostCanvas is <a href="https://github.com/ddalcu/ghost-canvas">open source</a> under MIT.
+        Powered by <a href="https://www.anthropic.com/claude">Claude Opus 4.6</a>.
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

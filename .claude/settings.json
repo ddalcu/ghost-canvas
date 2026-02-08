@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ghostcanvas__get_design_state",
+      "mcp__ghostcanvas__list_pages",
+      "mcp__ghostcanvas__set_design_tokens",
+      "mcp__ghostcanvas__set_styles",
+      "mcp__ghostcanvas__rename_page",
+      "mcp__ghostcanvas__create_page",
+      "mcp__ghostcanvas__set_active_page",
+      "mcp__ghostcanvas__update_element",
+      "mcp__ghostcanvas__create_element",
+      "mcp__ghostcanvas__get_history",
+      "mcp__ghostcanvas__get_page_state",
+      "mcp__ghostcanvas__list_elements",
+      "mcp__ghostcanvas__list_styles",
+      "mcp__ghostcanvas__get_design_tokens",
+      "mcp__ghostcanvas__batch_create_elements",
+      "mcp__ghostcanvas__list_projects",
+      "mcp__ghostcanvas__switch_project",
+      "mcp__ghostcanvas__create_project",
+      "mcp__ghostcanvas__set_viewport",
+      "mcp__ghostcanvas__rename_project",
+      "mcp__ghostcanvas__delete_element",
+      "mcp__ghostcanvas__move_element",
+      "mcp__ghostcanvas__export_html",
+      "mcp__ghostcanvas__get_selected_element",
+      "mcp__ghostcanvas__screenshot_page",
+      "mcp__ghostcanvas__batch_set_styles",
+      "mcp__ghostcanvas__get_element",
+      "mcp__ghostcanvas__clone_page",
+      "mcp__ghostcanvas__delete_page",
+      "mcp__ghostcanvas__delete_styles",
+      "mcp__ghostcanvas__delete_project",
+      "mcp__ghostcanvas__set_design_type",
+      "mcp__ghostcanvas__list_assets",
+      "mcp__ghostcanvas__delete_asset",
+      "mcp__ghostcanvas__export_design_spec",
+      "mcp__ghostcanvas__get_diff",
+      "mcp__ghostcanvas__checkout_version",
+      "mcp__ghostcanvas__save_revision"
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "ghostcanvas"
+  ]
+}

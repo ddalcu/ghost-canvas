@@ -1,0 +1,5 @@
+node_modules
+designs
+.claude/settings.local.json
+designs_old/
+designs/
