@@ -34,7 +34,9 @@ function renderElement(element, elements, indent = '') {
   const lines = [`${indent}<${tag}${attrStr}>`];
 
   if (element.textContent) {
-    lines.push(`${indent}  ${escapeHtml(element.textContent)}`);
+    const RAW_TEXT_TAGS = new Set(['style', 'script']);
+    const text = RAW_TEXT_TAGS.has(tag) ? element.textContent : escapeHtml(element.textContent);
+    lines.push(`${indent}  ${text}`);
   }
 
   for (const childId of element.children) {
@@ -120,7 +122,7 @@ function renderStyles(styles, designTokens) {
   return rules.join('\n\n');
 }
 
-const HEAD_TAGS = new Set(['link', 'meta', 'base']);
+const HEAD_TAGS = new Set(['link', 'meta', 'base', 'style']);
 
 const GOOGLE_FONT_FAMILIES = new Set([
   'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins',
@@ -159,6 +161,9 @@ function renderHeadElement(element) {
     attrs.push(`${escapeHtml(key)}="${escapeHtml(value)}"`);
   }
   const attrStr = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
+  if (element.textContent) {
+    return `  <${element.tag}${attrStr}>\n${element.textContent}\n  </${element.tag}>`;
+  }
   return `  <${element.tag}${attrStr}>`;
 }
 
