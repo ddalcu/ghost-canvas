@@ -37,8 +37,17 @@ class App {
     this.canvas.init();
     this.devices.init();
     this.setupWsHandlers();
+    this.setupPreviewButton();
     this.setupExportButton();
     this.ws.connect();
+  }
+
+  setupPreviewButton() {
+    const btn = document.getElementById('preview-btn');
+    btn.addEventListener('click', () => {
+      const pageId = this.state?.project?.activePageId || '';
+      window.open(`/api/render?pageId=${encodeURIComponent(pageId)}`, '_blank');
+    });
   }
 
   setupExportButton() {
