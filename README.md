@@ -2,13 +2,17 @@
 
 **Design-first AI creation.** Think Figma, but the designer is Claude.
 
-GhostCanvas is a new paradigm for AI-driven design. Instead of prompting an AI to generate code and hoping the result looks right, you start with the design -- like a real design workflow. Claude Opus 4.6 creates, iterates, and perfects visual designs in a live canvas while you watch in real time. Low context, low token usage, near-zero error rate, and output quality that feels like working with an actual designer.
+GhostCanvas is a new paradigm for AI-driven design. Instead of prompting an AI to generate code and hoping the result looks right, you start with the design -- like a real design workflow. Claude or https://github.com/ddalcu/agent-orcha creates, iterates, and perfects visual designs in a live canvas while you watch in real time. Low context, low token usage, near-zero error rate, and output quality that feels like working with an actual designer.
 
 Once the design is exactly what you want, export a structured spec and let any AI coding tool rebuild it as a production app. Design first, code second.
 
 GhostCanvas operates through [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) tools with a read-only browser viewer at `localhost:4800`. No arbitrary code execution on your system -- the AI can only manipulate designs through a controlled set of 38 tools. Tell it to generate 500 logo variations and let it run. This isn't a chatbot with a canvas bolted on -- it's an AI design employee.
 
-Powered by Claude Opus 4.6. Open source. Runs locally.
+Powered by Claude Opus 4.6 or [AgentOrcha](https://github.com/ddalcu/agent-orcha) Open source. Runs locally.
+
+Youtube Video Demo:
+[![Watch the video](https://img.youtube.com/vi/HbGGInu0rpI/maxresdefault.jpg)](https://www.youtube.com/watch?v=HbGGInu0rpI)
+
 
 ## Quick Start
 
